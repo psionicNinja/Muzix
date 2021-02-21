@@ -27,6 +27,7 @@ import java.io.InputStreamReader;
 
 public class SongPlay extends Activity implements AudioManager.OnAudioFocusChangeListener {
 
+//TODO: Auto play next song
 
     String str;
     ContentResolver contentResolver;

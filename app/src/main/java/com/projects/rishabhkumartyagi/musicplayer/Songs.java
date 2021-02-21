@@ -14,7 +14,10 @@ import android.provider.MediaStore;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -34,16 +37,15 @@ public class Songs extends AppCompatActivity {
 
     Context context;
 
-
-
     String[] ListElements = new String[]{};
 
-    ListView listView;
+    RecyclerView songListRecyclerView;
 
-    List<String> ListElementsArrayList;
+    ArrayList<String> ListElementsArrayList;
 
     ArrayAdapter<String> adapter;
-
+    RecyclerView.LayoutManager songListLayoutManager;
+    RecyclerView.Adapter songListAdapter;
     ContentResolver contentResolver;
 
     Cursor cursor;
@@ -56,7 +58,6 @@ public class Songs extends AppCompatActivity {
     HashMap<String, String> SongD;
 
     DataBaseHelper db;
-    float temperaturebms;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -65,9 +66,8 @@ public class Songs extends AppCompatActivity {
 
         SongD = new HashMap<String, String>();
 
-        listView = (ListView) findViewById(R.id.listView);
-        getCpuTemp();
-
+        songListRecyclerView = (RecyclerView) findViewById(R.id.songListRecyclerView);
+        songListLayoutManager = new LinearLayoutManager(getApplicationContext());
         context = getApplicationContext();
 
         ListElementsArrayList = new ArrayList<>(Arrays.asList(ListElements));
@@ -77,39 +77,55 @@ public class Songs extends AppCompatActivity {
         adapter = new ArrayAdapter<String>
                 (Songs.this, android.R.layout.simple_list_item_checked, ListElementsArrayList);
 
+        songListAdapter = new RecyclerView.Adapter() {
+            @Override
+            public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+                return null;
+            }
+
+            @Override
+            public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+
+            }
+
+            @Override
+            public int getItemCount() {
+                return 0;
+            }
+        };
         AndroidRuntimePermission();
 
         GetAllMediaMp3Files();
 
-        listView.setAdapter(adapter);
+        songListRecyclerView.setAdapter(songListAdapter);
 
         db = new DataBaseHelper(this);
 
 
-        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-               // Toast.makeText(Songs.this, parent.getAdapter().getItem(position).toString(), Toast.LENGTH_SHORT).show();
-                String tempo = db.cEntry(SongD.get(parent.getAdapter().getItem(position).toString()),temperaturebms);
-                //Toast.makeText(Songs.this,tempo,Toast.LENGTH_SHORT).show();
-
-                    if(SongD.get(parent.getAdapter().getItem(position).toString()).equals(db.cEntry(SongD.get(parent.getAdapter().getItem(position).toString()),temperaturebms)))
-                    {
-                        db.EntryUpdate(SongD.get(parent.getAdapter().getItem(position).toString()),temperaturebms);
-                    }else
-                    {
-                        db.SongEntry(SongD.get(parent.getAdapter().getItem(position).toString()),parent.getAdapter().getItem(position).toString(),temperaturebms);
-                    }
-
-
-                String SongMessage = SongD.get(parent.getAdapter().getItem(position).toString());
-                Intent intent = new Intent(Songs.this, SongPlay.class);
-                intent.putExtra("SongData", SongMessage);
-                startActivity(intent);
-
-            }
-        });
+//        listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+//
+//               // Toast.makeText(Songs.this, parent.getAdapter().getItem(position).toString(), Toast.LENGTH_SHORT).show();
+//                String tempo = db.cEntry(SongD.get(parent.getAdapter().getItem(position).toString()),temperaturebms);
+//                //Toast.makeText(Songs.this,tempo,Toast.LENGTH_SHORT).show();
+//
+//                    if(SongD.get(parent.getAdapter().getItem(position).toString()).equals(db.cEntry(SongD.get(parent.getAdapter().getItem(position).toString()),temperaturebms)))
+//                    {
+//                        db.EntryUpdate(SongD.get(parent.getAdapter().getItem(position).toString()),temperaturebms);
+//                    }else
+//                    {
+//                        db.SongEntry(SongD.get(parent.getAdapter().getItem(position).toString()),parent.getAdapter().getItem(position).toString(),temperaturebms);
+//                    }
+//
+//
+//                String SongMessage = SongD.get(parent.getAdapter().getItem(position).toString());
+//                Intent intent = new Intent(Songs.this, SongPlay.class);
+//                intent.putExtra("SongData", SongMessage);
+//                startActivity(intent);
+//
+//            }
+//        });
 
     }
 
@@ -136,13 +152,12 @@ public class Songs extends AppCompatActivity {
 
         } else if (!cursor.moveToFirst()) {
 
-            Toast.makeText(Songs.this, "No Music Found on5 SD Card.", Toast.LENGTH_SHORT);
+            Toast.makeText(Songs.this, "No Music Found on Phone :-(", Toast.LENGTH_SHORT);
 
         } else {
 
             int Title = cursor.getColumnIndex(MediaStore.Audio.Media.TITLE);
             int Data = cursor.getColumnIndex(MediaStore.Audio.Media.DATA);
-
 
 
             do {
@@ -219,23 +234,6 @@ public class Songs extends AppCompatActivity {
             }
         }
     }
-
-    public void getCpuTemp() {
-        Process p;
-        try {
-            p = Runtime.getRuntime().exec("cat sys/class/thermal/thermal_zone0/temp");
-            p.waitFor();
-            BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-            String line = reader.readLine();
-            temperaturebms = Float.parseFloat(line) / 1000.0f-5;
-
-        } catch (Exception e) {
-            e.printStackTrace();
-
-        }
-    }
-
 }
 
 
